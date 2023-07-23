@@ -1,1 +1,59 @@
+int ledPin = 2; // pin connecting optocoupler to turn on LED
+const int WirelessChargerPin = A0;    //pin for analog reading
+const int PSU_Pin = A3;   //pin for sensing PSU is on using 3V3 rail
+int value = 0;
 
+
+/*   
+https://circuitdigest.com/microcontroller-projects/how-to-program-arduino-wirelessly-over-bluetooth
+*/ 
+//#include <SoftwareSerial.h> 
+//SoftwareSerial HC05(0,1); // RX | TX 
+
+
+void setup() {
+  //delay (100);
+  Serial.begin(9600);   //Start Serial
+  //Serial.println("Enter AT commands:");
+  //HC05.begin(38400); // HC-05 default speed in AT command more
+  pinMode(2, OUTPUT);  // declare the ledPin as an OUTPUT:
+  digitalWrite(2, LOW);
+  pinMode(A1, INPUT);
+  pinMode(A3, INPUT);
+}
+
+void loop () {
+ //if (HC05.available())
+  //  Serial.write(HC05.read());
+ //if (Serial.available())
+    //HC05.write(Serial.read());
+ //Bluetooth isn't working on mine since I bought a module that needs to be wired to the TX and RX pins. Ignore code for Bluetooth.
+  
+  value = analogRead(A0);         //Output to monitor for reading
+  Serial.print("");
+  Serial.println(value);
+  delay(100);
+
+  //The two main goals
+  //-- 1. To turn PC on with Qi charger if PC is off.
+  //-- 2. If PC is on, do not send signal to turn PC on. Depending on settings. Holding on the button will hard reset PC, so the reason for this code section.
+
+  //I want to turn the LED (pin 13) on for only 1 second like a switch.
+  //No repeats because I am using voltage from LED on wireless charger to trigger the function once when phone is charging to turn on pc with optocoupler.
+  //Second, if PC is already on, pin 13 must not be HIGH when phone is charging otherwise it shutdown the computer.
+
+
+  if (digitalRead(PSU_Pin) == LOW) {
+    if (analogRead(A0) > 2 && analogRead(A0) < 10 ) {
+      digitalWrite(ledPin, HIGH);
+      delay (1000);
+      digitalWrite(ledPin, LOW);
+      delay(500);
+    }
+  }
+  else if (digitalRead(WirelessChargerPin) == HIGH) {
+    if (digitalRead(PSU_Pin) == HIGH) {
+      digitalWrite(ledPin, LOW);
+    }
+  }
+}
